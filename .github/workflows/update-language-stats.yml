@@ -14,23 +14,31 @@ jobs:
       uses: ruby/setup-ruby@v1
       with:
         ruby-version: '3.1'
+        bundler-cache: true
+        
+    - name: Install Linguist dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake pkg-config libicu-dev zlib1g-dev
         
     - name: Install Linguist
-      run: gem install github-linguist
-      
-    - name: Run Linguist and generate stats
       run: |
-        linguist --json > linguist.json
-        echo "LANGUAGES=$(jq -r 'to_entries | map("\(.key): \(.value)") | join(", ")' linguist.json)" >> $GITHUB_ENV
+        gem install github-linguist
+        echo "$(bundle exec github-linguist --json)" > linguist.json
+        
+    - name: Process language data
+      run: |
+        LANGUAGES=$(jq -r 'to_entries | map("\(.key): \(.value)%") | join(", ")' linguist.json)
+        echo "LANGUAGES=${LANGUAGES}" >> $GITHUB_ENV
         
     - name: Update README
       run: |
-        sed -i '/<!-- LANGUAGES_START -->/,/<!-- LANGUAGES_END -->/c<!-- LANGUAGES_START -->\n### My Language Distribution\n```\n$LANGUAGES\n```\n<!-- LANGUAGES_END -->' README.md
+        sed -i '/<!-- LANGUAGES_START -->/,/<!-- LANGUAGES_END -->/c<!-- LANGUAGES_START -->\n### My Language Distribution\n```\n${LANGUAGES}\n```\n<!-- LANGUAGES_END -->' README.md
         
     - name: Commit changes
       run: |
         git config --global user.name "GitHub Actions"
         git config --global user.email "actions@github.com"
         git add README.md
-        git commit -m "Update language stats" || echo "No changes to commit"
+        git commit -m "Update language stats [skip ci]" || echo "No changes to commit"
         git push
