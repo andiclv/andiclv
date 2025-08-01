@@ -28,6 +28,10 @@ Data & AI Engineer specializing in transforming operations through intelligent a
 </picture>
 
 <!-- LANGUAGES_START -->
+### My Language Distribution
+```
+${LANGUAGES}
+```
 <!-- LANGUAGES_END -->
 
 ---
