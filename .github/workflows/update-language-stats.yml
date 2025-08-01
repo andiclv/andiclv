@@ -1,44 +1,30 @@
-name: Update Language Stats
-on:
-  schedule:
-    - cron: '0 0 * * *' # Runs daily at midnight
-  workflow_dispatch: # Allows manual triggering
+name: Private Language Stats
+on: 
+  push: { branches: [ main ] }
+  workflow_dispatch: {}
 
 jobs:
-  update-stats:
+  track-languages:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
       
-    - name: Set up Ruby
-      uses: ruby/setup-ruby@v1
-      with:
-        ruby-version: '3.1'
-        bundler-cache: true
-        
-    - name: Install Linguist dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y cmake pkg-config libicu-dev zlib1g-dev
-        
-    - name: Install Linguist
-      run: |
-        gem install github-linguist
-        echo "$(bundle exec github-linguist --json)" > linguist.json
-        
-    - name: Process language data
-      run: |
-        LANGUAGES=$(jq -r 'to_entries | map("\(.key): \(.value)%") | join(", ")' linguist.json)
-        echo "LANGUAGES=${LANGUAGES}" >> $GITHUB_ENV
-        
-    - name: Update README
-      run: |
-        sed -i '/<!-- LANGUAGES_START -->/,/<!-- LANGUAGES_END -->/c<!-- LANGUAGES_START -->\n### My Language Distribution\n```\n${LANGUAGES}\n```\n<!-- LANGUAGES_END -->' README.md
-        
-    - name: Commit changes
-      run: |
-        git config --global user.name "GitHub Actions"
-        git config --global user.email "actions@github.com"
-        git add README.md
-        git commit -m "Update language stats [skip ci]" || echo "No changes to commit"
-        git push
+      - name: Auth and clone private repos
+        env:
+          PAT: ${{ secrets.PAT }}
+        run: |
+          git config --global url."https://$PAT@github.com".insteadOf "https://github.com"
+          gh auth login --with-token <<< "$PAT"
+          gh repo list --limit 50 --json nameWithOwner --jq '.[].nameWithOwner' | xargs -I {} gh repo clone {} || true
+          
+      - name: Run linguist analysis
+        run: |
+          sudo apt-get install -y cmake libicu-dev
+          gem install github-linguist
+          github-linguist --json --no-ansi > linguist.json
+          jq -r 'to_entries[] | "\(.key): \(.value)%"' linguist.json > languages.txt
+          
+      - name: Update README
+        run: |
+          LANG_STATS=$(cat languages.txt | head -5)
+          sed -i '/<!-- LANG_START -->/,/<!-- LANG_END -->/c<!-- LANG_START -->\n### Private Code Distribution\n${LANG_STATS}\n<!-- LANG_END -->' README.md
