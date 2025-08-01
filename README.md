@@ -20,6 +20,3 @@ Data & AI Engineer specializing in transforming operations through intelligent a
   <img src="https://github-readme-stats-umber-nine-51.vercel.app/api?username=andiclv&show_icons=true&count_private=true" alt="Andrés's GitHub Stats" />
 </picture>
 
----
-
-*Always learning, always building. Open to collaboration and interesting projects!* 🚀
