@@ -1,6 +1,6 @@
 ## 🔗 About Me
 
-Data & AI Engineer specializing in transforming operations through intelligent automation and generative AI. I build full-stack data solutions and LLM-powered tools that drive real business impact. Open to working across any sector, with particular interest in fintech.
+Transforming operations through intelligent automation and generative AI. I build full-stack data solutions and LLM-powered tools that drive real business impact. Open to working across any sector, with particular interest in fintech.
 
 ## Connect with me
 
